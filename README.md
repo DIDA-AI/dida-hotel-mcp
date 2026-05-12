@@ -5,7 +5,7 @@
 
   
 
-**Dida MCP** is a high-performance hotel search and recommendation service built on the MCP (Model Context Protocol) standard. It connects Large Language Models with global hotel data, providing real-time structured hotel search capabilities for AI assistants, agents, travel planning tools, and IDE plugins like Cursor/Windsurf.
+**Dida Hotel MCP** is a high-performance hotel search and recommendation service built on the MCP (Model Context Protocol) standard. It connects Large Language Models with global hotel data, providing real-time structured hotel search capabilities for AI assistants, agents, travel planning tools, and IDE plugins like Cursor/Windsurf.
 
   
 

@@ -1,116 +1,182 @@
-# RollingGo Flight MCP Server
+# Dida MCP Server
+![Version](https://img.shields.io/badge/Version-1.0.0-blue)
+![MCP Protocol](https://img.shields.io/badge/MCP-Protocol-green)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
 > 🌐 [English](README.en.md) | **中文**
 
-RollingGo 机票搜索 MCP Server。通过 FastMCP 为 AI Agent 和 MCP 客户端提供机场检索和航班查询能力。
+**Dida Hotel MCP** 是基于MCP（Model Context Protocol）标准的高性能酒店搜索推荐服务，可连接大语言模型与海内外海量酒店数据，为AI助手、智能体、旅游规划工具、或Cursor/Windsurf等IDE插件提供实时结构化酒店检索能力。 支持通过自然语言指令按地点、时间、偏好等多维度筛选，返回酒店基础信息（名称、价格、位置）及深度信息（设施、距离、详情），显著提升对话式旅游应用的交互体验与推荐质量。
 
-当前版本只暴露 2 个工具：
+> 💡 **无需编写代码**，只需配置好，就能让任何支持MCP的AI助手具备酒店搜索能力。
 
-- `searchAirports`：根据英文城市名、英文机场名或 IATA 代码搜索机场/城市信息。
-- `searchFlights`：查询指定日期、航线、乘客人数和舱等的航班方案。
+---
 
-暂不实现 `checkFlightSeats` 和 `checkBaggageAllowance`。
+## 🚀快速开始
 
-## 安装依赖
+### 第一步：获取API密钥
 
-```bash
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-```
+1. [点击进入申请地址](https://mcp.agentichotel.cn/apply)
+2. 点击「**申请资格**」，填写基本信息
+3. 审核通过后，将下发 **API Key**至你填写的联系方式
 
-## 配置
+> ⚠️ 请妥善保管你的API Key，不要泄露给他人
 
-默认上游 API 地址：
+### 第二步：在AI助手中配置
 
-```text
-https://mcp.rollinggo.cn
-```
-
-可通过环境变量覆盖：
-
-```bash
-set ROLLINGGO_API_BASE_URL=https://mcp.rollinggo.cn
-```
-
-HTTP 版本运行时从请求头读取 API Key。调用方需要传入以下任一请求头：
-
-```http
-Authorization: Bearer <your_api_key>
-```
-
-或：
-
-```http
-X-Secret-Key: <your_api_key>
-```
-
-## 启动
-
-```bash
-python server.py
-```
-
-默认监听：
-
-```text
-http://127.0.0.1:8000/mcp
-```
-
-## MCP 客户端配置示例
+#### 在 Cursor / Windsurf 中使用 （远程模式）
 
 ```json
 {
   "mcpServers": {
-    "RollingGo-Flight-MCP": {
-      "url": "http://127.0.0.1:8000/mcp",
-      "type": "streamable_http",
+    "aigohotel-mcp": {
+      "serverUrl": "https://mcp.aigohotel.com/mcp",
       "headers": {
-        "Authorization": "Bearer YOUR_API_KEY"
+        "Authorization": "Bearer YOUR_API_KEY", //替换成你的API-KEY
+        "Content-Type": "application/json"
       }
     }
   }
 }
 ```
-
-## searchAirports
-
-`keyword` 请优先传英文城市名、英文机场名或 IATA 代码，例如 `Hangzhou`、`Chengdu`、`HGH`、`CTU`。不建议优先传中文城市名。
-
-输入：
-
+#### 本地模式
+适用于你在本地启动了 `aigohotel-mcp` 服务进程的情况。
+1. **启动后端服务**：确保本地服务已运行并监听 `http://localhost:8000/mcp`。
+2. **添加配置**：在 `mcp.json` 中使用传统的 `url` 字段。
 ```json
 {
-  "keyword": "Hangzhou"
+  "mcpServers": {
+    "aigohotel-mcp": {
+      "url": "http://localhost:8000/mcp", //本地服务地址
+      "type": "http",
+      "headers": {
+             "X-Secret-Key": "YOUR_API_KEY" // 替换成你的API-KEY
+         }
+    }
+  }
 }
 ```
+### 第三步：开始使用
 
-上游端点：
+在AI助手中发送请求，例如：
+> "帮我查一下未来3日内，杭州西湖景区附近有哪些可以看到西湖风景的，4星以上的酒店？"
 
-```text
-POST /api/mcp/airportsearch
-```
+AI会自动调用工具，返回酒店列表。
 
-## searchFlights
+---
 
-输入：
+## ✨ 功能特性
 
-```json
-{
-  "adultNumber": 1,
-  "childNumber": 0,
-  "cabinGrade": "ECONOMY",
-  "fromCity": "HGH",
-  "toCity": "CTU",
-  "fromDate": "2026-05-01",
-  "tripType": "ONE_WAY"
-}
-```
+| 功能 | 说明 |
+|------|------|
+| 🏙️ **多地点搜索** | 支持城市、景点、机场、火车站、地铁站等 |
+| 📅 **日期筛选** | 指定入住日期和住宿天数 |
+| ⭐ **星级过滤** | 支持0-5星筛选，精确到0.5星梯度 |
+| 📍 **距离搜索** | 以景点为中心，限定半径范围（米） |
+| 🛏️ **设施详情** | 可选返回酒店设施、房间设施信息 |
+| 🌐 **多语言** | 支持中文、英文等语言环境 |
 
-上游端点：
+---
 
-```text
-POST /api/mcp/flightsearch
-```
+## 🛠️ 工具列表
+| 工具名称 | 功能简介 | 使用场景 |
+|----------|---------|----------|
+| **GetHotelSearchTags** | 获取酒店搜索标签元数据 | 启动时缓存，辅助AI理解用户需求 |
+| **SearchHotels** | 多条件酒店信息搜索 | 初筛比选候选酒店 |
+| **GetHotelDetail** | 单个酒店房型价格，以及酒店详细信息查询 | 用户选定酒店后查价预订 |
+---
 
-字段说明以 `rollinggo-readme/FLIGHT-README.md` 为准。
+
+## 📝 使用示例
+
+### 示例1：城市酒店搜索
+> "帮我看看未来三天内，杭州有哪些4星以上的酒店推荐？"
+
+![showcase1](https://raw.githubusercontent.com/young63/dida-picbed/main/showcase1.png)
+![showcase2](https://raw.githubusercontent.com/young63/dida-picbed/main/showcase2.png)
+
+---
+
+### 示例2：景点周边搜索
+> "2026年七夕节，想在香港迪士尼附近找个性价比高的酒店"
+
+![showcase3](https://raw.githubusercontent.com/young63/dida-picbed/main/showcase3.png )
+![showcase5](https://raw.githubusercontent.com/young63/dida-picbed/main/showcase5.png)
+---
+
+### 配置参数说明
+
+#### 常用核心参数
+
+| 参数 | 必填 | 说明 | 示例 |
+|------|------|------|------|
+| place | ✅ | 搜索地点 | 杭州、迪士尼 |
+| placeType | ✅ | 地点类型 | 城市、景点、机场、地铁站、区/县... |
+| originQuery | ✅ | 你的原始需求描述 | 帮我找酒店 |
+| checkIn | ❌ | 入住日期(yyyy-MM-dd) | 2026-05-01 |
+| stayNights | ❌ | 住宿天数 | 2 |
+| starRatings | ❌ | 星级范围 | [4, 5] 表示4-5星 |
+| size | ❌ | 返回数量(默认10)，最大20 | 5 |
+
+> 注意：
+> - 实际字段以接口数据返回为准，上述示例仅展示部分字段。
+> -   随着后端能力演进，字段可能会新增或调整，MCP 客户端侧建议按“有则使用、无则忽略”的方式做兼容。
+---
+
+## 💬 适用场景
+
+#### 🤖 旅游规划助手
+> 根据用户出行计划推荐酒店 (个人、家庭出游)
+#### 📅 出差行程管理 
+> 与航班/景点信息服务组合使用，一键规划出行方案
+####  💻企业内部运营系统
+> 为客服、销售、或差旅人员提供酒店搜索支持接口
+####  🌟任何需要「自然语言 + 酒店检索」能力的应用或智能体
+---
+
+## ❓ 常见问题
+
+### Q: 支持哪些AI助手/IDE？
+
+**A:** 目前支持以下平台：
+- Cursor
+- Windsurf
+- Antigravity
+- Claude Desktop
+- Cherry studio等其他支持MCP协议的客户端
+
+### Q: 搜索结果包含哪些信息？
+
+**A:** 默认返回酒店名称、星级、价格、地址、预订链接，酒店图片、酒店设施等。(具体可参考实际返回数据)
+### Q: 有调用次数限制吗？
+
+**A:** 目前阶段免费使用。
+
+### Q: 如何获取技术支持？
+
+**A:** 可以通过以下方式联系我们：
+- 📧 邮箱：`york.lu@dida.com`
+- 💬 微信群：[扫码加入](https://raw.githubusercontent.com/young63/dida-picbed/main/groupchat_QR.jpg)
+---
+
+## 🔒 安全与鉴权
+
+### 认证方式
+
+| 环境 | 认证方式 | Header |
+|------|----------|--------|
+| 远程(云端) | Bearer Token | `Authorization: Bearer YOUR_API_KEY` |
+| 本地服务 | Secret Key | `X-Secret-Key: YOUR_API_KEY` |
+
+### 安全建议
+
+- API Key请妥善保管，不要硬编码在代码中
+- 生产环境建议使用环境变量管理
+- 公网访问请使用HTTPS协议
+
+---
+
+## 📋 更新日志
+
+### v1.0.0 (2026.04.02)
+- ✨ 文档信息更变
+---

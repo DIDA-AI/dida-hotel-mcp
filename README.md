@@ -1,0 +1,1 @@
+# dida-hotel-mcp
